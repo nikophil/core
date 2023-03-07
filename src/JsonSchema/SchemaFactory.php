@@ -178,9 +178,9 @@ final class SchemaFactory implements SchemaFactoryInterface
         $type = $propertyMetadata->getBuiltinTypes()[0] ?? null;
 
         if (!isset($propertySchema['default']) && !empty($default = $propertyMetadata->getDefault()) && (null === $type?->getClassName() || !$this->isResourceClass($type->getClassName()))) {
-            if ($default instanceof \BackedEnum) {
-                $default = $default->value;
-            }
+//            if ($default instanceof \BackedEnum) {
+//                $default = $default->value;
+//            }
             $propertySchema['default'] = $default;
         }
 
