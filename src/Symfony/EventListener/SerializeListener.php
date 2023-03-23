@@ -23,10 +23,6 @@ use ApiPlatform\Util\RequestAttributesExtractor;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
-use Symfony\Component\Marshaller\MarshallerInterface;
-use Symfony\Component\Marshaller\Output\MemoryStreamOutput;
-use Symfony\Component\Marshaller\Context\Context;
-use Symfony\Component\Marshaller\Context\Option\TypeOption;
 use Symfony\Component\Serializer\Encoder\EncoderInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -44,8 +40,12 @@ final class SerializeListener
 
     public const OPERATION_ATTRIBUTE_KEY = 'serialize';
 
-    public function __construct(private readonly SerializerInterface $serializer, private readonly SerializerContextBuilderInterface $serializerContextBuilder, ?ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory = null, private readonly ?MarshallerInterface $marshaller = null)
-    {
+    public function __construct(
+        private readonly SerializerInterface $serializer,
+        private readonly SerializerContextBuilderInterface $serializerContextBuilder,
+        ?ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory = null,
+        private readonly ?\Symfony\Component\SerDes\SerializerInterface $serializerSerDes = null
+    ) {
         $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
     }
 
@@ -97,8 +97,8 @@ final class SerializeListener
         $context[AbstractObjectNormalizer::EXCLUDE_FROM_CACHE_KEY][] = 'resources_to_push';
 
         $request->attributes->set('_api_normalization_context', $context);
-        
-        if ($this->marshaller) {
+
+        if ($this->serializerSerDes) {
             $event->setControllerResult($controllerResult);
         } else {
             $event->setControllerResult($this->serializer->serialize($controllerResult, $request->getRequestFormat(), $context));

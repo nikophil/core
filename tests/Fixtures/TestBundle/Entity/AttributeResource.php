@@ -39,7 +39,7 @@ use ApiPlatform\Tests\Fixtures\TestBundle\State\AttributeResourceProvider;
 )]
 #[Get]
 #[Patch]
-final class AttributeResource
+class AttributeResource
 {
     public function __construct(#[ApiProperty(identifier: true)] public int $identifier, public string $name)
     {

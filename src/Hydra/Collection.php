@@ -13,31 +13,28 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Hydra;
 
-use Symfony\Component\Marshaller\Attribute\Name;
+use Symfony\Component\SerDes\Attribute\Name;
+use Symfony\Component\SerDes\Attribute\Serializable;
 
 /**
  * @template T
  */
-final class Collection implements \IteratorAggregate
+#[Serializable]
+final class Collection
 {
     #[Name('hydra:member')]
-    /** @var T[] */
+    /** @var list<T> */
     public array $collection;
 
     #[Name('@type')]
     public string $type = 'hydra:Collection';
 
+    #[Name('@context')]
+    public string $context;
+
+    #[Name('@id')]
+    public string $id;
+
     #[Name('hydra:totalItems')]
     public int $totalItems = 0;
-
-    public function __construct(...$collection)
-    {
-        $this->collection = $collection;
-        $this->totalItems = \count($collection);
-    }
-
-    public function getIterator(): \Traversable
-    {
-        return new \ArrayIterator($this->collection);
-    }
 }

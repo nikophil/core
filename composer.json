@@ -19,7 +19,7 @@
         },
         {
             "type": "path",
-            "url": "../marshaller/components/Marshaller"
+            "url": "../symfony/src/Symfony/Component/SerDes"
         }
     ],
     "require": {
@@ -35,7 +35,7 @@
         "symfony/serializer": "^6.1",
         "symfony/web-link": "^6.1",
         "willdurand/negotiation": "^2.0.3 || ^3.0",
-        "symfony/marshaller": "*"
+        "symfony/ser-des": "*"
     },
     "require-dev": {
         "behat/behat": "^3.1",

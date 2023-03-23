@@ -19,6 +19,7 @@ use ApiPlatform\State\ProviderInterface;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\AttributeResource;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\AttributeResources;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Dummy;
+use Symfony\Component\VarExporter\ProxyHelper;
 
 class AttributeResourceProvider implements ProviderInterface
 {
@@ -35,7 +36,45 @@ class AttributeResourceProvider implements ProviderInterface
             return $resource;
         }
 
-        return new Collection(new AttributeResource(1, 'Foo'), new AttributeResource(2, 'Bar'));
+        $collection = new Collection();
+
+        $class = $this->proxy();
+
+        $var = new $class(1, 'Foo');
+        $var->id = '/attribute_resources/1';
+        $var->type = $context['operation']->getShortName();
+
+        $var2 = new $class(2, 'Bar');
+        $var2->id = '/attribute_resources/2';
+        $var2->type = $context['operation']->getShortName();
+
+        $collection->collection = [$var, $var2];
+        $collection->context = "/contexts/{$context['operation']->getShortName()}";
+        $collection->id = $context['request_uri'];
+
+        return $collection;
         // return new AttributeResources(new AttributeResource(1, 'Foo'), new AttributeResource(2, 'Bar'));
+    }
+
+    private function proxy(): string
+    {
+        $proxyClass = \str_replace('\\', '', AttributeResource::class).'Proxy';
+
+        if (\class_exists($proxyClass)) {
+            return $proxyClass;
+        }
+
+        $class = AttributeResource::class;
+        $trait = JsonLDProxyTrait::class;
+        $proxyCode = <<<PROXY
+class $proxyClass extends $class
+{
+    use $trait;
+}
+PROXY;
+
+        eval($proxyCode);
+
+        return $proxyClass;
     }
 }

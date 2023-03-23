@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace ApiPlatform\JsonLd;
 
-use Symfony\Component\Marshaller\Attribute\Name;
+use Symfony\Component\SerDes\Attribute\Name;
 
-trait Item 
+trait Item
 {
     #[Name('@type')]
     /** @var array<int, string>|string */

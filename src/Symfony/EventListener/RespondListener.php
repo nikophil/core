@@ -22,18 +22,11 @@ use ApiPlatform\Util\RequestAttributesExtractor;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
-use Symfony\Component\Marshaller\Context\Option\PropertyNameFormatterOption;
-use Symfony\Component\Marshaller\Context\Option\PropertyTypeOption;
-use Symfony\Component\Marshaller\Context\Option\PropertyValueFormatterOption;
-use Symfony\Component\Marshaller\MarshallerInterface;
-use Symfony\Component\Marshaller\Output\OutputStreamOutput;
-use Symfony\Component\Marshaller\Context\Context;
-use Symfony\Component\Marshaller\Context\Option\TypeOption;
-use Symfony\Component\Marshaller\Context\Option\HooksOption;
-use Symfony\Component\Marshaller\Context\Option\ValueFormatterOption;
 use ApiPlatform\Tests\Fixtures\TestBundle\Entity\AttributeResource;
 use ApiPlatform\Hydra\Collection;
-use function Symfony\Component\Marshaller\marshal_generate;
+use Symfony\Component\SerDes\Context\SerializeContext;
+use Symfony\Component\SerDes\SerializerInterface;
+use Symfony\Component\SerDes\Stream\OutputStream;
 
 /**
  * Builds the response object.
@@ -49,8 +42,11 @@ final class RespondListener
         'DELETE' => Response::HTTP_NO_CONTENT,
     ];
 
-    public function __construct(ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory = null, private readonly ?IriConverterInterface $iriConverter = null, private readonly ?MarshallerInterface $marshaller = null)
-    {
+    public function __construct(
+        ResourceMetadataCollectionFactoryInterface $resourceMetadataFactory = null,
+        private readonly ?IriConverterInterface $iriConverter = null,
+        private readonly ?SerializerInterface $serializerSerDes = null
+    ) {
         $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
     }
 
@@ -112,30 +108,8 @@ final class RespondListener
             }
         }
 
-        $valueFormatterOption = new PropertyValueFormatterOption([
-            AttributeResource::class => ['identifier' => $this->test(...)]
-        ]);
-
-        $nameFormatterOption = new PropertyNameFormatterOption([
-            AttributeResource::class => ['identifier' => fn() => '@id']
-        ]);
-
-        $propertyTypeOption = new PropertyTypeOption([
-            Collection::class => ['collection' => sprintf('array<int, %s>', AttributeResource::class)]
-        ]);
-
-        // $propertyTypeOption = new ExtendTypeOption([
-        //     AttributeResource::class => 'Item<AttributeResource>'
-        // ]);
-
-        $context = new Context($nameFormatterOption, $valueFormatterOption, $propertyTypeOption);
-        $response = new StreamedResponse(
-            function () use ($controllerResult, $context) {
-                $this->marshaller->marshal($controllerResult, 'json', new OutputStreamOutput(), $context);
-            },
-            $status,
-            $headers
-        );
+        $context = (new SerializeContext())->withType(sprintf('%s<%s>', Collection::class, 'ApiPlatformTestsFixturesTestBundleEntityAttributeResourceProxy'));
+        $response = new StreamedResponse(fn () => $this->serializerSerDes->serialize($controllerResult, 'json', new OutputStream(), $context));
 
         $event->setResponse($response);
     }

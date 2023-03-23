@@ -1,3 +1,8 @@
+framework:
+    ser_des:
+        serializable_paths:
+            - '%kernel.project_dir%/../../../src/Hydra'
+            
 doctrine:
     dbal:
         driver: 'pdo_sqlite'

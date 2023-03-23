@@ -105,13 +105,6 @@ class AppKernel extends Kernel
     }
 
     protected function build(ContainerBuilder $c): void {
-        parent::build($c);
-
-        $c->registerExtension(new MarshallerExtension());
-        $c->setParameter('marshaller.cache_dir', sprintf('%s/marshaller', $c->getParameter('kernel.cache_dir')));
-        $c->setParameter('marshaller.warmable_paths', []);
-        $c->setParameter('marshaller.warmable_formats', ['json']);
-        $c->setParameter('marshaller.warmable_nullable_data', false);
     }
 
 
